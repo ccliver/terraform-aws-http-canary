@@ -21,7 +21,6 @@ func checkEndpoint(endpoint string) int {
 
 func healthcheck() (string, error) {
 	endpoint := os.Getenv("HTTP_HEALTHCHECK_ENDPOINT")
-  appName := os.Getenv("APP_NAME")
 	metricName := "http-healthcheck-" + os.Getenv("APP_NAME") + os.Getenv("AWS_REGION")
 	timestamp := time.Now()
 	metricValue := float64(checkEndpoint(endpoint))
