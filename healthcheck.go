@@ -19,9 +19,9 @@ func checkEndpoint(endpoint string) int {
 	return resp.StatusCode
 }
 
-func healthcheck() (string, error) {
+func healthcheck() {
 	endpoint := os.Getenv("HTTP_HEALTHCHECK_ENDPOINT")
-	metricName := "http-healthcheck-" + os.Getenv("APP_NAME") + os.Getenv("AWS_REGION")
+	metricName := "http-healthcheck-" + os.Getenv("APP_NAME") + "-" + os.Getenv("AWS_REGION")
 	timestamp := time.Now()
 	metricValue := float64(checkEndpoint(endpoint))
 
@@ -41,8 +41,7 @@ func healthcheck() (string, error) {
 		Region: aws.String(os.Getenv("AWS_REGION")),
 	}))
 	svc := cloudwatch.New(sess)
-	out, err := svc.PutMetricData(&metricDataInput)
-	return out.String(), err
+	svc.PutMetricData(&metricDataInput)
 }
 
 func main() {
