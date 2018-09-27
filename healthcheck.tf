@@ -90,7 +90,7 @@ resource "aws_iam_policy_attachment" "cloudwatch_access" {
   policy_arn = "${aws_iam_policy.cloudwatch_access.arn}"
 }
 
-resource "aws_lambda_function" "test_lambda" {
+resource "aws_lambda_function" "healthcheck" {
   filename         = "healthcheck.zip"
   function_name    = "http-healthcheck-${var.app_name}-${var.region}"
   role             = "${aws_iam_role.iam_for_lambda.arn}"
@@ -104,4 +104,23 @@ resource "aws_lambda_function" "test_lambda" {
       APP_NAME                  = "${var.app_name}"
     }
   }
+}
+
+resource "aws_lambda_permission" "cloudwatch" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.healthcheck.arn}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.healthcheck.arn}"
+}
+
+resource "aws_cloudwatch_event_rule" "healthcheck" {
+  name                = "http-healthcheck-${var.app_name}-${var.region}"
+  schedule_expression = "rate(1 minute)"
+}
+
+resource "aws_cloudwatch_event_target" "healthcheck" {
+  target_id = "http-healthcheck-${var.app_name}-${var.region}"
+  rule      = "${aws_cloudwatch_event_rule.healthcheck.name}"
+  arn       = "${aws_lambda_function.healthcheck.arn}"
 }
