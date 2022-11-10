@@ -2,19 +2,19 @@ locals {
   name = "health-check-${var.app_name}"
 }
 
-resource "aws_sns_topic" "healthcheck" {
+resource "aws_sns_topic" "health_check" {
   display_name = local.name
   name         = local.name
 }
 
-resource "aws_sns_topic_subscription" "healthcheck" {
-  topic_arn              = aws_sns_topic.healthcheck.arn
+resource "aws_sns_topic_subscription" "health_check" {
+  topic_arn              = aws_sns_topic.health_check.arn
   protocol               = "https"
   endpoint_auto_confirms = true
   endpoint               = var.alert_endpoint
 }
 
-resource "aws_cloudwatch_metric_alarm" "healthcheck" {
+resource "aws_cloudwatch_metric_alarm" "health_check" {
   alarm_name          = local.name
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
@@ -23,8 +23,8 @@ resource "aws_cloudwatch_metric_alarm" "healthcheck" {
   period              = 60
   statistic           = "Maximum"
   threshold           = 1
-  alarm_actions       = [aws_sns_topic.healthcheck.arn]
-  ok_actions          = [aws_sns_topic.healthcheck.arn]
+  alarm_actions       = [aws_sns_topic.health_check.arn]
+  ok_actions          = [aws_sns_topic.health_check.arn]
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -50,7 +50,7 @@ EOF
 resource "aws_iam_policy" "cloudwatch_access" {
   name        = local.name
   path        = "/"
-  description = "Grant Cloudwatch access for http-healthcheck-${var.app_name}"
+  description = "Grant Cloudwatch access for http-health_check-${var.app_name}"
 
   policy = <<EOF
 {
@@ -82,18 +82,18 @@ data "archive_file" "lambda" {
 
 data "aws_region" "current" {}
 
-resource "aws_lambda_function" "healthcheck" {
+resource "aws_lambda_function" "health_check" {
   filename         = "http_check.zip"
   function_name    = local.name
   role             = aws_iam_role.iam_for_lambda.arn
-  handler          = "healthcheck"
+  handler          = "http_check.handler"
   source_code_hash = data.archive_file.lambda.output_base64sha256
   runtime          = "python3.9"
 
   environment {
     variables = {
       AWS_REGION              = data.aws_region.current.name
-      HEALTH_CHECK_ENDPOINT   = var.healthcheck_endpoint
+      HEALTH_CHECK_ENDPOINT   = var.health_check_endpoint
       METRIC_NAME             = local.name
       ACCEPTABLE_RETURN_CODES = join(",", var.acceptable_return_codes)
     }
@@ -103,18 +103,18 @@ resource "aws_lambda_function" "healthcheck" {
 resource "aws_lambda_permission" "cloudwatch" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.healthcheck.arn
+  function_name = aws_lambda_function.health_check.arn
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.healthcheck.arn
+  source_arn    = aws_cloudwatch_event_rule.health_check.arn
 }
 
-resource "aws_cloudwatch_event_rule" "healthcheck" {
+resource "aws_cloudwatch_event_rule" "health_check" {
   name                = local.name
   schedule_expression = "rate(1 minute)"
 }
 
-resource "aws_cloudwatch_event_target" "healthcheck" {
+resource "aws_cloudwatch_event_target" "health_check" {
   target_id = local.name
-  rule      = aws_cloudwatch_event_rule.healthcheck.name
-  arn       = aws_lambda_function.healthcheck.arn
+  rule      = aws_cloudwatch_event_rule.health_check.name
+  arn       = aws_lambda_function.health_check.arn
 }
