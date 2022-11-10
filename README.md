@@ -44,6 +44,7 @@ No modules.
 | <a name="input_acceptable_return_codes"></a> [acceptable\_return\_codes](#input\_acceptable\_return\_codes) | List of HTTP return codes indicating the health check was a success. | `list(string)` | <pre>[<br>  "200"<br>]</pre> | no |
 | <a name="input_alert_endpoint"></a> [alert\_endpoint](#input\_alert\_endpoint) | The HTTP alert endpoint. | `string` | n/a | yes |
 | <a name="input_app_name"></a> [app\_name](#input\_app\_name) | The name of the app you're testing. This will be used to name AWS resources so it should be unique. | `string` | n/a | yes |
+| <a name="input_cloudwatch_alarm_namespace"></a> [cloudwatch\_alarm\_namespace](#input\_cloudwatch\_alarm\_namespace) | An optional namespace to put the Cloudwatch alarm under. | `string` | `null` | no |
 | <a name="input_healthcheck_endpoint"></a> [healthcheck\_endpoint](#input\_healthcheck\_endpoint) | The HTTP endpoint to check. | `string` | n/a | yes |
 
 ## Outputs

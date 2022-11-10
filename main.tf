@@ -19,7 +19,7 @@ resource "aws_cloudwatch_metric_alarm" "healthcheck" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = local.name
-  namespace           = local.name
+  namespace           = var.cloudwatch_alarm_namespace
   period              = 60
   statistic           = "Maximum"
   threshold           = 1

@@ -18,3 +18,9 @@ variable "acceptable_return_codes" {
   description = "List of HTTP return codes indicating the health check was a success."
   default     = ["200"]
 }
+
+variable "cloudwatch_alarm_namespace" {
+  type        = string
+  description = "An optional namespace to put the Cloudwatch alarm under."
+  default     = null
+}
