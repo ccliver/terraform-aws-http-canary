@@ -12,3 +12,9 @@ variable "alert_endpoint" {
   type        = string
   description = "The HTTP alert endpoint."
 }
+
+variable "acceptable_return_codes" {
+  type        = list(string)
+  description = "List of HTTP return codes indicating the health check was a success."
+  default     = ["200"]
+}
