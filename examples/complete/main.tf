@@ -1,12 +1,11 @@
 provider "aws" {
-  region = "us-west-2"
+  region = "us-east-2"
 }
 
 module "healthcheck" {
-  source = "./http-healthcheck"
+  source = "../.."
 
   app_name             = "testapp"
-  region               = "us-west-2"
   healthcheck_endpoint = "https://example.com"
   alert_endpoint       = "https://example.com"
 }
