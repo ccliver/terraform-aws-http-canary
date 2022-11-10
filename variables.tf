@@ -24,3 +24,13 @@ variable "cloudwatch_alarm_namespace" {
   description = "An optional namespace to put the Cloudwatch alarm under."
   default     = null
 }
+
+variable "sns_subscription_protocol" {
+  type        = string
+  description = "The SNS subscription protocol (email or http)."
+
+  validation {
+    condition     = can(regex("^email$|^http$", var.sns_subscription_protocol))
+    error_message = "Valid values are email or http."
+  }
+}

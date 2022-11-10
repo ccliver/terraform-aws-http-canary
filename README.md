@@ -46,6 +46,7 @@ No modules.
 | <a name="input_app_name"></a> [app\_name](#input\_app\_name) | The name of the app you're testing. This will be used to name AWS resources so it should be unique. | `string` | n/a | yes |
 | <a name="input_cloudwatch_alarm_namespace"></a> [cloudwatch\_alarm\_namespace](#input\_cloudwatch\_alarm\_namespace) | An optional namespace to put the Cloudwatch alarm under. | `string` | `null` | no |
 | <a name="input_health_check_endpoint"></a> [health\_check\_endpoint](#input\_health\_check\_endpoint) | The HTTP endpoint to check. | `string` | n/a | yes |
+| <a name="input_sns_subscription_protocol"></a> [sns\_subscription\_protocol](#input\_sns\_subscription\_protocol) | The SNS subscription protocol (email or http). | `string` | n/a | yes |
 
 ## Outputs
 

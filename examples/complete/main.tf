@@ -5,7 +5,8 @@ provider "aws" {
 module "healthcheck" {
   source = "../.."
 
-  app_name             = "testapp"
-  healthcheck_endpoint = "https://example.com"
-  alert_endpoint       = "https://example.com"
+  app_name                  = "testapp"
+  health_check_endpoint     = var.health_check_endpoint
+  alert_endpoint            = var.alert_endpoint
+  sns_subscription_protocol = var.sns_subscription_protocol
 }

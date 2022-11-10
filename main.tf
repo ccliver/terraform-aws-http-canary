@@ -9,7 +9,7 @@ resource "aws_sns_topic" "health_check" {
 
 resource "aws_sns_topic_subscription" "health_check" {
   topic_arn              = aws_sns_topic.health_check.arn
-  protocol               = "https"
+  protocol               = var.sns_subscription_protocol
   endpoint_auto_confirms = true
   endpoint               = var.alert_endpoint
 }
