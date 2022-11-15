@@ -14,15 +14,22 @@ def check_endpoint(endpoint: str) -> str:
         endpoint: The HTTP endpoint to check.
 
     Returns:
-        The HTTP status code returned by the endpoint.
+        The HTTP status code returned by the endpoint or 0 if the endpoint could not be reached.
     """
 
-    http = urllib3.PoolManager()
-    r = http.request('GET', endpoint)
+    try:
+        http = urllib3.PoolManager()
+        r = http.request("GET", endpoint)
+    except Exception as err:
+        print(f"Error accessing endpoint: {err}")
+        return str("0")
+
     return str(r.status)
 
 
-def put_metric_data(metric_namespace: str, metric_name: str, value: int) -> dict:
+def put_metric_data(
+    client, metric_namespace: str, metric_name: str, value: int
+) -> dict:
     """Send metric data to the Cloudwatch API
 
     Args:
@@ -34,8 +41,6 @@ def put_metric_data(metric_namespace: str, metric_name: str, value: int) -> dict
         A dict with the PutMetricData response.
     """
 
-    region = os.environ["AWS_REGION"]
-    client = boto3.client("cloudwatch", region_name=region)
     response = client.put_metric_data(
         Namespace=metric_namespace,
         MetricData=[
@@ -61,6 +66,8 @@ def handler(event, context):
     metric_namespace = os.environ["METRIC_NAMESPACE"]
     metric_name = os.environ["METRIC_NAME"]
     acceptable_return_codes = os.environ.get("ACCEPTABLE_RETURN_CODES")
+    region = os.environ["AWS_REGION"]
+    client = boto3.client("cloudwatch", region_name=region)
 
     http_status_code = check_endpoint(health_check_endpoint)
     print(f"HTTP status code: {http_status_code}")
@@ -70,6 +77,3 @@ def handler(event, context):
     else:
         response = put_metric_data(metric_namespace, metric_name, 0)
     print(f"PutMetricData Response: {response}")
-
-if __name__ == "__main__":
-    handler("", "")
