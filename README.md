@@ -35,7 +35,6 @@ No modules.
 | [aws_sns_topic.health_check](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
 | [aws_sns_topic_subscription.health_check](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [archive_file.lambda](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/file) | data source |
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
 ## Inputs
 
@@ -44,7 +43,7 @@ No modules.
 | <a name="input_acceptable_return_codes"></a> [acceptable\_return\_codes](#input\_acceptable\_return\_codes) | List of HTTP return codes indicating the health check was a success. | `list(string)` | <pre>[<br>  "200"<br>]</pre> | no |
 | <a name="input_alert_endpoint"></a> [alert\_endpoint](#input\_alert\_endpoint) | The HTTP alert endpoint or email address. | `string` | n/a | yes |
 | <a name="input_app_name"></a> [app\_name](#input\_app\_name) | The name of the app you're testing. This will be used to name AWS resources so it should be unique. | `string` | n/a | yes |
-| <a name="input_cloudwatch_alarm_namespace"></a> [cloudwatch\_alarm\_namespace](#input\_cloudwatch\_alarm\_namespace) | An optional namespace to put the Cloudwatch alarm under. | `string` | `null` | no |
+| <a name="input_cloudwatch_metric_namespace"></a> [cloudwatch\_metric\_namespace](#input\_cloudwatch\_metric\_namespace) | The namespace to put the Cloudwatch metric under. | `string` | `null` | no |
 | <a name="input_health_check_endpoint"></a> [health\_check\_endpoint](#input\_health\_check\_endpoint) | The HTTP endpoint to check. | `string` | n/a | yes |
 | <a name="input_sns_subscription_protocol"></a> [sns\_subscription\_protocol](#input\_sns\_subscription\_protocol) | The SNS subscription protocol (email or http). | `string` | n/a | yes |
 

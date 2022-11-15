@@ -31,3 +31,5 @@ terraform.rc
 *.swp
 
 __pycache__
+
+*.zip

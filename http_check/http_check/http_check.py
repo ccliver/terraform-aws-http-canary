@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 import boto3
-import requests
+import urllib3
 
 
 def check_endpoint(endpoint: str) -> str:
@@ -17,24 +17,27 @@ def check_endpoint(endpoint: str) -> str:
         The HTTP status code returned by the endpoint.
     """
 
-    return str(requests.get(endpoint).status_code)
+    http = urllib3.PoolManager()
+    r = http.request('GET', endpoint)
+    return str(r.status)
 
 
-def put_metric_data(metric_name: str, value: int, region: str) -> dict:
+def put_metric_data(metric_namespace: str, metric_name: str, value: int) -> dict:
     """Send metric data to the Cloudwatch API
 
     Args:
+        metric_namespace: The namespace the metric should be under.
         metric_name: The name of the Cloudwatch metric.
         http_status_code: The HTTP status code returned by check_endpoint().
-        region: The region to send the metric to.
 
     Returns:
         A dict with the PutMetricData response.
     """
 
+    region = os.environ["AWS_REGION"]
     client = boto3.client("cloudwatch", region_name=region)
     response = client.put_metric_data(
-        Namespace=metric_name,
+        Namespace=metric_namespace,
         MetricData=[
             {
                 "MetricName": metric_name,
@@ -54,22 +57,19 @@ def handler(event, context):
         context: Provides methods and properties that provide information about the invocation, function, and runtime environment.
     """
 
-    region = os.environ["AWS_REGION"]
     health_check_endpoint = os.environ["HEALTH_CHECK_ENDPOINT"]
+    metric_namespace = os.environ["METRIC_NAMESPACE"]
     metric_name = os.environ["METRIC_NAME"]
     acceptable_return_codes = os.environ.get("ACCEPTABLE_RETURN_CODES")
 
     http_status_code = check_endpoint(health_check_endpoint)
     print(f"HTTP status code: {http_status_code}")
     if http_status_code not in acceptable_return_codes:
-        put_metric_data(metric_name, 1, region)
+        response = put_metric_data(metric_namespace, metric_name, 1)
         # TODO: send message to SNS with payload on failure
     else:
-        put_metric_data(metric_name, 0, region)
-
-    response = put_metric_data(metric_name, http_status_code, region)
+        response = put_metric_data(metric_namespace, metric_name, 0)
     print(f"PutMetricData Response: {response}")
-
 
 if __name__ == "__main__":
     handler("", "")

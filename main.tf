@@ -19,7 +19,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check" {
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = local.name
-  namespace           = var.cloudwatch_alarm_namespace
+  namespace           = var.cloudwatch_metric_namespace
   period              = 60
   statistic           = "Maximum"
   threshold           = 1
@@ -58,7 +58,10 @@ resource "aws_iam_policy" "cloudwatch_access" {
   "Statement": [
     {
       "Action": [
-        "cloudwatch:PutMetricData"
+        "cloudwatch:PutMetricData",
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -80,21 +83,19 @@ data "archive_file" "lambda" {
   output_path = "${path.module}/http_check.zip"
 }
 
-data "aws_region" "current" {}
-
 resource "aws_lambda_function" "health_check" {
-  filename         = "http_check.zip"
+  filename         = "${path.module}/http_check.zip"
   function_name    = local.name
   role             = aws_iam_role.iam_for_lambda.arn
-  handler          = "http_check.handler"
+  handler          = "http_check.http_check.handler"
   source_code_hash = data.archive_file.lambda.output_base64sha256
   runtime          = "python3.9"
 
   environment {
     variables = {
-      AWS_REGION              = data.aws_region.current.name
       HEALTH_CHECK_ENDPOINT   = var.health_check_endpoint
       METRIC_NAME             = local.name
+      METRIC_NAMESPACE        = var.cloudwatch_metric_namespace
       ACCEPTABLE_RETURN_CODES = join(",", var.acceptable_return_codes)
     }
   }

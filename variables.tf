@@ -19,9 +19,9 @@ variable "acceptable_return_codes" {
   default     = ["200"]
 }
 
-variable "cloudwatch_alarm_namespace" {
+variable "cloudwatch_metric_namespace" {
   type        = string
-  description = "An optional namespace to put the Cloudwatch alarm under."
+  description = "The namespace to put the Cloudwatch metric under."
   default     = null
 }
 
