@@ -14,15 +14,16 @@ def check_endpoint(endpoint: str) -> str:
         endpoint: The HTTP endpoint to check.
 
     Returns:
-        The HTTP status code returned by the endpoint or 0 if the endpoint could not be reached.
+        The HTTP status code returned by the endpoint or -1 if the endpoint could not be reached.
     """
 
+    print(f"Checking endpoint {endpoint}")
     try:
         http = urllib3.PoolManager()
         r = http.request("GET", endpoint)
     except Exception as err:
         print(f"Error accessing endpoint: {err}")
-        return str("0")
+        return str("-1")
 
     return str(r.status)
 
@@ -71,9 +72,11 @@ def handler(event, context):
 
     http_status_code = check_endpoint(health_check_endpoint)
     print(f"HTTP status code: {http_status_code}")
+    print(f"Acceptable return codes: {acceptable_return_codes}")
     if http_status_code not in acceptable_return_codes:
-        response = put_metric_data(metric_namespace, metric_name, 1)
+        print(f"Did not receive an acceptable response from {health_check_endpoint}")
+        response = put_metric_data(client, metric_namespace, metric_name, 1)
         # TODO: send message to SNS with payload on failure
     else:
-        response = put_metric_data(metric_namespace, metric_name, 0)
+        response = put_metric_data(client, metric_namespace, metric_name, 0)
     print(f"PutMetricData Response: {response}")

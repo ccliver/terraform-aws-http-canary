@@ -31,7 +31,7 @@ def test_version():
 
 def test_check_endpoint_bad_endpoint():
     r = check_endpoint("http://127.0.0.1")
-    assert r == "0"
+    assert r == "-1"
 
 
 def test_check_endpoint_good_endpoint():

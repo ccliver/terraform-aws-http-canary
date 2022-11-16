@@ -33,3 +33,4 @@ terraform.rc
 __pycache__
 
 *.zip
+.coverage
