@@ -80,7 +80,7 @@ resource "aws_iam_policy_attachment" "cloudwatch_access" {
 resource "null_resource" "build_package" {
   provisioner "local-exec" {
     command = <<-EOF
-      cd ${path.module}/http_check
+      cd ${path.module}/src
       rm -rf dist package
       poetry build
       poetry run pip install -t package dist/*.whl
@@ -91,7 +91,7 @@ resource "null_resource" "build_package" {
 
 data "archive_file" "lambda" {
   type        = "zip"
-  source_dir  = "${path.module}/http_check/package/"
+  source_dir  = "${path.module}/src/package/"
   output_path = "${path.module}/package.zip"
   excludes    = toset(["*.pyc"])
 
