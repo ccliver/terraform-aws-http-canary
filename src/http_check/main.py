@@ -4,10 +4,15 @@ import os
 from datetime import datetime
 
 import boto3
-import urllib3
+import requests
+
+from aws_lambda_powertools import Logger
 
 
-def check_endpoint(endpoint: str) -> str:
+logger = Logger()
+
+
+def check_endpoint(endpoint: str) -> int:
     """Make an HTTP GET request to endpoint and return the status code
 
     Args:
@@ -17,20 +22,17 @@ def check_endpoint(endpoint: str) -> str:
         The HTTP status code returned by the endpoint or -1 if the endpoint could not be reached.
     """
 
-    print(f"Checking endpoint {endpoint}")
+    logger.info(f"Checking endpoint {endpoint}")
     try:
-        http = urllib3.PoolManager()
-        r = http.request("GET", endpoint)
+        r = requests.get(endpoint, timeout=10)
     except Exception as err:
-        print(f"Error accessing endpoint: {err}")
+        logger.error(f"Error accessing endpoint: {err}")
         return str("-1")
 
-    return str(r.status)
+    return str(r.status_code)
 
 
-def put_metric_data(
-    client, metric_namespace: str, metric_name: str, value: int
-) -> dict:
+def put_metric_data(metric_namespace: str, metric_name: str, value: int) -> dict:
     """Send metric data to the Cloudwatch API
 
     Args:
@@ -42,6 +44,7 @@ def put_metric_data(
         A dict with the PutMetricData response.
     """
 
+    client = boto3.client("cloudwatch")
     response = client.put_metric_data(
         Namespace=metric_namespace,
         MetricData=[
@@ -55,6 +58,7 @@ def put_metric_data(
     return response
 
 
+@logger.inject_lambda_context(log_event=True)
 def handler(event, context):
     """Lambda handler
 
@@ -67,16 +71,14 @@ def handler(event, context):
     metric_namespace = os.environ["METRIC_NAMESPACE"]
     metric_name = os.environ["METRIC_NAME"]
     acceptable_return_codes = os.environ.get("ACCEPTABLE_RETURN_CODES")
-    region = os.environ["AWS_REGION"]
-    client = boto3.client("cloudwatch", region_name=region)
 
     http_status_code = check_endpoint(health_check_endpoint)
-    print(f"HTTP status code: {http_status_code}")
-    print(f"Acceptable return codes: {acceptable_return_codes}")
+    logger.info(f"HTTP status code: {http_status_code}")
+    logger.info(f"Acceptable return codes: {acceptable_return_codes}")
     if http_status_code not in acceptable_return_codes:
-        print(f"Did not receive an acceptable response from {health_check_endpoint}")
-        response = put_metric_data(client, metric_namespace, metric_name, 1)
+        logger.error(f"Did not receive an acceptable response from {health_check_endpoint}")
+        response = put_metric_data(metric_namespace, metric_name, 1)
         # TODO: send message to SNS with payload on failure
     else:
-        response = put_metric_data(client, metric_namespace, metric_name, 0)
-    print(f"PutMetricData Response: {response}")
+        response = put_metric_data(metric_namespace, metric_name, 0)
+    logger.info(f"PutMetricData Response: {response}")

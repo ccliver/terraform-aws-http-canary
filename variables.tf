@@ -22,7 +22,6 @@ variable "acceptable_return_codes" {
 variable "cloudwatch_metric_namespace" {
   type        = string
   description = "The namespace to put the Cloudwatch metric under."
-  default     = null
 }
 
 variable "sns_subscription_protocol" {

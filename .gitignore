@@ -34,3 +34,8 @@ __pycache__
 
 *.zip
 .coverage
+
+*.tar.gz
+*.whl
+dist
+package
