@@ -19,13 +19,14 @@ def test_version():
     assert __version__ == "0.1.0"
 
 
-def test_check_endpoint_bad_endpoint():
-    r = check_endpoint("http://127.0.0.1")
+def test_check_endpoint_bad_endpoint(requests_mock):
+    r = check_endpoint("http://google.badurl")
     assert r == "-1"
 
 
-def test_check_endpoint_good_endpoint():
-    r = check_endpoint("https://google.com")
+def test_check_endpoint_good_endpoint(requests_mock):
+    requests_mock.get("https://good-test-endpoint", text="OK", status_code=200)
+    r = check_endpoint("https://good-test-endpoint")
     assert r == "200"
 
 

@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 import boto3
-import urllib3
+import requests
 
 from aws_lambda_powertools import Logger
 
@@ -12,7 +12,7 @@ from aws_lambda_powertools import Logger
 logger = Logger()
 
 
-def check_endpoint(endpoint: str) -> str:
+def check_endpoint(endpoint: str) -> int:
     """Make an HTTP GET request to endpoint and return the status code
 
     Args:
@@ -24,13 +24,12 @@ def check_endpoint(endpoint: str) -> str:
 
     logger.info(f"Checking endpoint {endpoint}")
     try:
-        http = urllib3.PoolManager()
-        r = http.request("GET", endpoint)
+        r = requests.get(endpoint, timeout=10)
     except Exception as err:
         logger.error(f"Error accessing endpoint: {err}")
         return str("-1")
 
-    return str(r.status)
+    return str(r.status_code)
 
 
 def put_metric_data(metric_namespace: str, metric_name: str, value: int) -> dict:
