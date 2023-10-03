@@ -24,12 +24,12 @@ def check_endpoint(endpoint: str) -> int:
 
     logger.info(f"Checking endpoint {endpoint}")
     try:
-        r = requests.get(endpoint, timeout=10)
+        response = requests.get(endpoint, timeout=10)
     except Exception as err:
         logger.error(f"Error accessing endpoint: {err}")
         return str("-1")
 
-    return str(r.status_code)
+    return str(response.status_code)
 
 
 def put_metric_data(metric_namespace: str, metric_name: str, value: int) -> dict:
@@ -64,9 +64,12 @@ def handler(event, context):
 
     Args:
         event: AWS event invoking the lambda.
-        context: Provides methods and properties that provide information about the invocation, function, and runtime environment.
+        context: Provides methods and properties that provide information about the invocation,
+                 function, and runtime environment.
     """
 
+    logger.debug(event)
+    logger.debug(context)
     health_check_endpoint = os.environ["HEALTH_CHECK_ENDPOINT"]
     metric_namespace = os.environ["METRIC_NAMESPACE"]
     metric_name = os.environ["METRIC_NAME"]
