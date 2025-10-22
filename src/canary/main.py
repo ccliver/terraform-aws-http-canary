@@ -115,4 +115,4 @@ def handler(event, context):
             )
     else:
         response = put_metric_data(metric_namespace, metric_name, 0, metric_dimensions)
-    logger.info(f"PutMetricData Response: {response}")
+        logger.info(f"PutMetricData Response: {response}")
