@@ -1,30 +1,40 @@
+data "aws_region" "current" {}
+
 locals {
-  name = "health-check-${var.app_name}"
+  region = data.aws_region.current.region
+  name   = "${var.app_name}-canary"
+  dimensions = join(",", [
+    for key, value in var.cloudwatch_dimensions :
+    "${key}=${value}"
+  ])
 }
 
-resource "aws_sns_topic" "health_check" {
+# trivy:ignore:AVD-AWS-0095
+resource "aws_sns_topic" "canary" {
   display_name = local.name
   name         = local.name
 }
 
-resource "aws_sns_topic_subscription" "health_check" {
-  topic_arn              = aws_sns_topic.health_check.arn
+resource "aws_sns_topic_subscription" "canary" {
+  topic_arn              = aws_sns_topic.canary.arn
   protocol               = var.sns_subscription_protocol
   endpoint_auto_confirms = true
   endpoint               = var.alert_endpoint
 }
 
-resource "aws_cloudwatch_metric_alarm" "health_check" {
+resource "aws_cloudwatch_metric_alarm" "canary" {
   alarm_name          = local.name
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
-  metric_name         = local.name
+  metric_name         = var.cloudwatch_metric_name
   namespace           = var.cloudwatch_metric_namespace
   period              = 60
   statistic           = "Maximum"
   threshold           = 1
-  alarm_actions       = [aws_sns_topic.health_check.arn]
-  ok_actions          = [aws_sns_topic.health_check.arn]
+  alarm_actions       = [aws_sns_topic.canary.arn]
+  ok_actions          = [aws_sns_topic.canary.arn]
+  treat_missing_data  = "notBreaching"
+  dimensions          = var.cloudwatch_dimensions
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
@@ -50,7 +60,7 @@ EOF
 resource "aws_iam_policy" "cloudwatch_access" {
   name        = local.name
   path        = "/"
-  description = "Grant Cloudwatch access for http-health_check-${var.app_name}"
+  description = "Grant Cloudwatch access for ${var.app_name}-canary"
 
   policy = <<EOF
 {
@@ -77,6 +87,11 @@ resource "aws_iam_policy_attachment" "cloudwatch_access" {
   policy_arn = aws_iam_policy.cloudwatch_access.arn
 }
 
+resource "aws_iam_role_policy_attachment" "test-attach" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+
 resource "null_resource" "build_package" {
   provisioner "local-exec" {
     command = <<-EOF
@@ -98,20 +113,29 @@ data "archive_file" "lambda" {
   depends_on = [null_resource.build_package]
 }
 
-resource "aws_lambda_function" "health_check" {
+resource "aws_lambda_function" "canary" {
   filename         = "${path.module}/package.zip"
   function_name    = local.name
   role             = aws_iam_role.iam_for_lambda.arn
-  handler          = "http_check.main.handler"
+  handler          = "canary.main.handler"
   source_code_hash = data.archive_file.lambda.output_base64sha256
-  runtime          = "python3.11"
+  runtime          = "python3.13"
+  timeout          = var.lambda_timeout
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {
-      HEALTH_CHECK_ENDPOINT   = var.health_check_endpoint
-      METRIC_NAME             = local.name
-      METRIC_NAMESPACE        = var.cloudwatch_metric_namespace
-      ACCEPTABLE_RETURN_CODES = join(",", var.acceptable_return_codes)
+      REGION            = local.region
+      ENDPOINT          = var.endpoint
+      METRIC_NAMESPACE  = var.cloudwatch_metric_namespace
+      METRIC_NAME       = try(var.cloudwatch_metric_name, "${var.app_name}Status")
+      METRIC_DIMENSIONS = local.dimensions
+      OK_RETURN_CODES   = join(",", var.ok_return_codes)
+      REQUEST_TIMEOUT   = var.request_timeout
+      TOPIC_ARN         = aws_sns_topic.canary.arn
     }
   }
 }
@@ -119,18 +143,18 @@ resource "aws_lambda_function" "health_check" {
 resource "aws_lambda_permission" "cloudwatch" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.health_check.arn
+  function_name = aws_lambda_function.canary.arn
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.health_check.arn
+  source_arn    = aws_cloudwatch_event_rule.canary.arn
 }
 
-resource "aws_cloudwatch_event_rule" "health_check" {
+resource "aws_cloudwatch_event_rule" "canary" {
   name                = local.name
-  schedule_expression = "rate(1 minute)"
+  schedule_expression = var.schedule_expression
 }
 
-resource "aws_cloudwatch_event_target" "health_check" {
+resource "aws_cloudwatch_event_target" "canary" {
   target_id = local.name
-  rule      = aws_cloudwatch_event_rule.health_check.name
-  arn       = aws_lambda_function.health_check.arn
+  rule      = aws_cloudwatch_event_rule.canary.name
+  arn       = aws_lambda_function.canary.arn
 }

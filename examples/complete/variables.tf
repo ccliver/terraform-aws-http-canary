@@ -1,4 +1,4 @@
-variable "health_check_endpoint" {
+variable "endpoint" {
   type        = string
   description = "The HTTP endpoint to check."
 }
@@ -11,10 +11,4 @@ variable "alert_endpoint" {
 variable "sns_subscription_protocol" {
   type        = string
   description = "The SNS subscription protocol (email or http)."
-}
-
-variable "cloudwatch_metric_namespace" {
-  type        = string
-  description = "The namespace to put the Cloudwatch metric under."
-  default     = null
 }

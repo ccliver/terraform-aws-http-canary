@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "http_check"
+name = "canary"
 version = "0.1.0"
 description = ""
 authors = ["Carl Cliver <ccliver@gmail.com>"]
@@ -13,8 +13,11 @@ aws-lambda-powertools = "^2.24.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2"
-moto = "^4.0.9"
-requests-mock = "^1.11.0"
+moto = "^5"
+
+[tool.poetry.group.dev]
+[tool.poetry.group.dev.dependencies]
+responses = "^0.25.8"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -28,5 +31,5 @@ line-length = 120
 
 [tool.pytest.ini_options]
 testpaths = [
-    "tests"
+    "tests/unit"
 ]
