@@ -16,7 +16,7 @@ def test_check_endpoint_bad_endpoint():
         status=500,
     )
 
-    r = check_endpoint("https://bad-test-endpoint", [200])
+    r = check_endpoint("https://bad-test-endpoint")
     assert r == -1
 
 
@@ -29,7 +29,7 @@ def test_check_endpoint_good_endpoint():
         status=200,
     )
 
-    r = check_endpoint("https://good-test-endpoint", [200])
+    r = check_endpoint("https://good-test-endpoint")
     assert r == 200
 
 
