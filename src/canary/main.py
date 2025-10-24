@@ -15,14 +15,15 @@ cloudwatch = boto3.client("cloudwatch", region_name=os.getenv("REGION", "us-east
 sns = boto3.client("sns", region_name=os.getenv("REGION", "us-east-1"))
 
 
-def check_endpoint(endpoint: str, ok_return_codes: list[int], timeout: int = 5) -> int:
+def check_endpoint(endpoint: str, timeout: int = 5) -> int:
     """Make an HTTP GET request to endpoint and return the status code
 
     Args:
         endpoint: The HTTP endpoint to check.
 
     Returns:
-        The HTTP status code returned by the endpoint or -1 if the endpoint could not be reached.
+        The HTTP status code returned by the endpoint or
+        -1 if the endpoint could not be reached.
     """
 
     logger.info(f"Checking endpoint {endpoint}")
@@ -40,16 +41,17 @@ def put_metric_data(
     """Send metric data to the Cloudwatch API
 
     Args:
-        metric_namespace: The namespace the metric should be under.
-        metric_name: The name of the Cloudwatch metric.
-        http_status_code: The HTTP status code returned by check_endpoint().
+        namespace: The namespace the metric should be under.
+        name: The name of the Cloudwatch metric.
+        dimensions: The dimensions for the Cloudwatch metric.
 
     Returns:
         A dict with the PutMetricData response.
     """
 
     logger.info(
-        f"Putting metric data: Namespace={namespace}, Name={name}, Value={value}, Dimensions={dimensions}"
+        f"Putting metric data: Namespace={namespace}, "
+        f"Name={name}, Value={value}, Dimensions={dimensions}"
     )
     try:
         response = cloudwatch.put_metric_data(
@@ -93,9 +95,7 @@ def handler(event, context):
     metric_namespace = os.getenv("METRIC_NAMESPACE", "")
     request_timeout = int(os.getenv("REQUEST_TIMEOUT", "5"))
 
-    http_status_code = check_endpoint(
-        health_check_endpoint, ok_return_codes, request_timeout
-    )
+    http_status_code = check_endpoint(health_check_endpoint, request_timeout)
     logger.info(f"HTTP status code: {http_status_code}")
     logger.info(f"Acceptable return codes: {ok_return_codes}")
     if http_status_code not in ok_return_codes:
@@ -108,11 +108,14 @@ def handler(event, context):
                 TopicArn=topic_arn,
                 Subject=f"Canary Alert: {health_check_endpoint} is down",
                 Message=(
-                    f"Canary detected an issue when accessing {health_check_endpoint}.\n"
+                    "Canary detected an issue when accessing "
+                    f"{health_check_endpoint}.\n"
                     f"Received HTTP status code: {http_status_code}\n"
                     f"Acceptable return codes: {ok_return_codes}"
                 ),
             )
     else:
         response = put_metric_data(metric_namespace, metric_name, 0, metric_dimensions)
-        logger.info(f"PutMetricData Response: {response}")
+        logger.info(
+            f"PutMetricData Response: {response}                                       "
+        )
