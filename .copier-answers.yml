@@ -1,0 +1,11 @@
+_commit: v1.2.0
+_src_path: git@github.com:ccliver/copier-terraform-module-template.git
+author_full_name: Carl Cliver
+aws_provider_version: '>= 6.0'
+copyright_holder: ccliver
+copyright_year: '2026'
+description: Lambda to perform an HTTP health check and alert an SNS topic on failure.
+github_user_name: ccliver
+include_examples: true
+include_terratest: false
+module_name: http-canary

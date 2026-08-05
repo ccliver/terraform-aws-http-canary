@@ -4,7 +4,7 @@ Lambda to perform an HTTP health check and alert an SNS topic on failure.
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.0 |
 | <a name="requirement_archive"></a> [archive](#requirement\_archive) | >= 2.2.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0 |
@@ -13,7 +13,7 @@ Lambda to perform an HTTP health check and alert an SNS topic on failure.
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_archive"></a> [archive](#provider\_archive) | >= 2.2.0 |
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | >= 3.2.1 |
@@ -25,7 +25,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_cloudwatch_event_rule.canary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_rule) | resource |
 | [aws_cloudwatch_event_target.canary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_event_target) | resource |
 | [aws_cloudwatch_metric_alarm.canary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
@@ -44,7 +44,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_alert_endpoint"></a> [alert\_endpoint](#input\_alert\_endpoint) | The HTTP alert endpoint or email address. | `string` | n/a | yes |
 | <a name="input_app_name"></a> [app\_name](#input\_app\_name) | The name of the app you're testing. This will be used to name AWS resources so it should be unique. | `string` | n/a | yes |
 | <a name="input_cloudwatch_dimensions"></a> [cloudwatch\_dimensions](#input\_cloudwatch\_dimensions) | A map of key=value pairs to use as dimensions for the CloudWatch metric. | `map(string)` | `{}` | no |
